@@ -1,63 +1,52 @@
-const Todo = require("../models/todoModel");
+// A simple local array acting as a temporary memory database
+let mockTodos = [
+  { _id: "1", title: "Learn Docker", completed: false },
+  { _id: "2", title: "Deploy to Azure", completed: false }
+];
 
-// Base route to welcome users
-exports.baseRoot = (req, res) => {
-  res
-    .status(200)
-    .send(
-      `<h1>✅ Welcome to MERN-Todofy! </h1><p>See Live Web URL for this Server - <a href="https://mern-todofy.netlify.app">https://mern-todofy.netlify.app</a></p>`
-    );
+// Base root message
+const baseRoot = (req, res) => {
+  res.send("✅ Backend server is running smoothly in Mock Mode!");
 };
 
-exports.getTask = async (req, res) => {
+// Get all todos
+const getTodos = async (req, res) => {
   try {
-    const allTask = await Todo.find();
-    res.status(200).json(allTask);
-  } catch (err) {
-    res.status(500).json({ errorMessage: err.message });
+    res.status(200).json(mockTodos);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-exports.createTask = async (req, res) => {
+// Create a new todo
+const createTodo = async (req, res) => {
   try {
-    const { task } = req.body;
-
-    if (!task || typeof task !== "string") {
-      return res.status(400).json({ errorMessage: "Task is not valid." });
-    }
-
-    const newList = await Todo.create({ task });
-    res.status(201).json({ message: "Task created successfully.", newList });
-  } catch (err) {
-    res.status(500).json({ errorMessage: err.message });
+    const newTodo = {
+      _id: Date.now().toString(), // Generate a unique temporary ID
+      title: req.body.title,
+      completed: false
+    };
+    mockTodos.push(newTodo);
+    res.status(201).json(newTodo);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-exports.deleteTask = async (req, res) => {
+// Delete a todo
+const deleteTodo = async (req, res) => {
   try {
-    const deleted = await Todo.findByIdAndDelete(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ errorMessage: "Task not found." });
-    }
-    res.status(200).json({ message: "Task deleted successfully.", deleted });
-  } catch (err) {
-    res.status(500).json({ errorMessage: err.message });
+    const { id } = req.params;
+    mockTodos = mockTodos.filter(todo => todo._id !== id);
+    res.status(200).json({ message: "Todo deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
-exports.updateTask = async (req, res) => {
-  try {
-    const updated = await Todo.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updated) {
-      return res.status(404).json({ errorMessage: "Task not found." });
-    }
-
-    res.status(200).json({ message: "Task updated successfully.", updated });
-  } catch (err) {
-    res.status(500).json({ errorMessage: err.message });
-  }
+module.exports = {
+  baseRoot,
+  getTodos,
+  createTodo,
+  deleteTodo
 };

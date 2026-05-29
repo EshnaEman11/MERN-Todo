@@ -2,36 +2,35 @@ const express = require("express");
 const dotenvFlow = require("dotenv-flow");
 const todoRoutes = require("./routes/todoRoutes");
 const cors = require("cors");
+const { baseRoot } = require("./controllers/todoController");
 
-// dotenv-flow is used to manage environment variables across different environments
+// Initialize environment variables
 dotenvFlow.config();
 
 const app = express();
 
-// allow requests from outside resources like postman, or your frontend if you choose to build that out
+// Middleware
 app.use(cors());
-
-// app will serve and receive data in a JSON format
 app.use(express.json());
 
-// the messenger between our app and our database
+// -------------------------------------------------------------
+// ⚠️ MOCK MODE ACTIVATED: DATABASE CONNECTION BYPASSED
+// -------------------------------------------------------------
 const mongoose = require("mongoose");
-const { baseRoot } = require("./controllers/todoController");
 
-// establish connection & give yourself a message so you know when its complete
-const source = process.env.MONGODB_ATLAS_CONNECTION;
+// We tell mongoose to globally turn off buffering so hidden models 
+// do not hang your frontend requests!
+mongoose.set("bufferCommands", false); 
 
-mongoose
-  .connect(source)
-  .then(() => console.log("✅ DB Connected Successfully"))
-  .catch((error) => console.log(error));
+console.log("⚠️ Mock Mode: Database connection fully disabled. Buffering stopped.");
+// -------------------------------------------------------------
 
+// Routes
 app.get("/", baseRoot);
-
 app.use("/api", todoRoutes);
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server is running on port ${PORT}`);
+  console.log(`✅ Server is running in MOCK MODE on port ${PORT}`);
 });
